@@ -8,7 +8,6 @@ class Player
     if letter.match?(/[a-z]/i) && letter.length == 1
       letter.downcase
     else
-      puts 'else running...'
       letter_choice
     end
   end

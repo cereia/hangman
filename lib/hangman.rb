@@ -59,7 +59,6 @@ class Hangman
     if !@num_of_wrong_guesses_left.zero? && @secret_word != @guessed
       @chosen_letter = @player.letter_choice
       p @chosen_letter
-      # p @player.letter_choice
       insert_chosen_letter
     elsif @secret_word == @guessed
       puts 'Congrats! You won!'

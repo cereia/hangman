@@ -20,10 +20,13 @@
 # human:
 #   guess letters a-z case insensitive
 
+require_relative 'player/player'
+
 # hangman class holds all code relating to playing the game hangman
 class Hangman
   def initialize
     Dir.mkdir('saves') unless Dir.exist?('saves')
+    @player = Player.new
     @secret_word = ''
     @guessed = ''
     @chosen_letter = ''
@@ -49,12 +52,17 @@ class Hangman
     @guessed = @secret_word.gsub(/\w/,'_')
     puts "Your word is #{@guessed.count('_')} letters long: #{@guessed}"
     puts "This is the number of wrong guesses you have left: #{@num_of_wrong_guesses_left}"
+    play_round
   end
 
   def play_round
-    if !@num_of_wrong_guesses_left.zero?
-      @chosen_letter = ''
+    if !@num_of_wrong_guesses_left.zero? && @secret_word != @guessed
+      @chosen_letter = @player.letter_choice
+      p @chosen_letter
+      # p @player.letter_choice
       insert_chosen_letter
+    elsif @secret_word == @guessed
+      puts 'Congrats! You won!'
     else
       puts "You lost :(\nThe correct word was #{@secret_word} and you got #{@guessed}"
     end
@@ -69,11 +77,20 @@ class Hangman
 
   def insert_chosen_letter
     indices = find_all_indices_of_chosen_letter
-    if indices.nil?
+    if indices.empty?
       @wrong_guesses += @chosen_letter
-      @num_of_wrong_guesses_left -= 1
+      @num_of_wrong_guesses_left = 7 - @wrong_guesses.length
     else
-      indices.map { |idx| @guessed[idx] = 'e' }
+      indices.map { |idx| @guessed[idx] = @chosen_letter }
     end
+    print_player_information
+    play_round
+  end
+
+  def print_player_information
+    # puts "secret: #{@secret_word}" # for testing only
+    puts "Here is your current word: #{@guessed}"
+    puts "Here are your wrong guesses: #{@wrong_guesses}"
+    puts "Here are how many wrong guesses you have left: #{@num_of_wrong_guesses_left}"
   end
 end

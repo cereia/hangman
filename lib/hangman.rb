@@ -21,6 +21,7 @@
 #   guess letters a-z case insensitive
 
 require_relative 'player/player'
+require 'yaml'
 
 # hangman class holds all code relating to playing the game hangman
 class Hangman
@@ -32,6 +33,7 @@ class Hangman
     @chosen_letter = ''
     @wrong_guesses = ''
     @num_of_wrong_guesses_left = 7
+    @saved_file = false
     check_if_save_file_exists
   end
 
@@ -39,11 +41,29 @@ class Hangman
     if Dir.empty?('saves')
       create_new_game
     else
-      puts 'Do you want to open a saved file?'
+      answer = @player.player_confirmation_input
+      if answer.match?(/y/i)
+        open_save_file
+      else
+        create_new_game
+      end
       # need human player's response
       # if yes: open save file that the user chooses if more than 1 file
       # if no: run create_new_game
     end
+    play_round
+  end
+
+  def open_save_file
+    save_files = Dir.entries('saves').reject { |f| File.directory? f }
+    if save_files.length > 1
+      save_files.each_with_index { |f, i| puts "#{i}: #{f}" }
+      num = @player.player_number_input(save_files.length - 1)
+      from_yaml(save_files[num])
+    else
+      from_yaml(save_files[0])
+    end
+    print_player_information
   end
 
   def create_new_game
@@ -52,14 +72,13 @@ class Hangman
     @guessed = @secret_word.gsub(/\w/,'_')
     puts "Your word is #{@guessed.count('_')} letters long: #{@guessed}"
     puts "This is the number of wrong guesses you have left: #{@num_of_wrong_guesses_left}"
-    play_round
   end
 
   def play_round
     if !@num_of_wrong_guesses_left.zero? && @secret_word != @guessed
-      @chosen_letter = @player.letter_choice
-      p @chosen_letter
-      insert_chosen_letter
+      choice = @player.player_choice
+      @chosen_letter = choice if choice.length == 1
+      choice.match?(/save/i) ? save_game : insert_chosen_letter
     elsif @secret_word == @guessed
       puts 'Congrats! You won!'
     else
@@ -87,9 +106,47 @@ class Hangman
   end
 
   def print_player_information
-    # puts "secret: #{@secret_word}" # for testing only
+    puts "\n"
     puts "Here is your current word: #{@guessed}"
     puts "Here are your wrong guesses: #{@wrong_guesses}"
     puts "Here are how many wrong guesses you have left: #{@num_of_wrong_guesses_left}"
   end
+
+  def save_game
+    @saved_file = true
+    filename = "saves/#{@guessed.length}_letters_#{@num_of_wrong_guesses_left}_guesses_left.yaml"
+    save_file = to_yaml
+    File.open(filename, 'w') do |file|
+      file.puts save_file
+    end
+  end
+
+  def to_yaml
+    YAML.dump({
+                secret_word: @secret_word,
+                guessed: @guessed,
+                wrong_guesses: @wrong_guesses,
+                num_of_wrong_guesses_left: @num_of_wrong_guesses_left,
+                saved_file: @saved_file
+              })
+  end
+
+  def from_yaml(path)
+    data = YAML.load_file("./saves/#{path}")
+    # puts "data: #{data}" # for testing
+    @secret_word = data[:secret_word]
+    @guessed = data[:guessed]
+    @wrong_guesses = data[:wrong_guesses]
+    @num_of_wrong_guesses_left = data[:num_of_wrong_guesses_left]
+    @saved_file = data[:saved_file]
+  end
+
+  # save/serialization?
+  # use the non-human readable type to save:
+  #   @secret_word
+  #   @guessed / correctly guessed letters
+  #   @wrong_guesses
+  #   @num_of_wrong_guesses_left
+  # don't use json or yaml because those are human readable and player can just open
+  # the file and see what the @secret_code is
 end

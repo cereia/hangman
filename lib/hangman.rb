@@ -71,14 +71,20 @@ class Hangman
 
   def play_round
     if !@num_of_wrong_guesses_left.zero? && @secret_word != @guessed
-      choice = @player.player_choice
-      @chosen_letter = choice if choice.length == 1
-      choice.match?(/save/i) ? save_game : insert_chosen_letter
+      check_player_choice
     elsif @secret_word == @guessed
       puts 'Congrats! You won!'
+      delete_save_file
     else
       puts "You lost :(\nThe correct word was #{@secret_word} and you got #{@guessed}"
+      delete_save_file
     end
+  end
+
+  def check_player_choice
+    choice = @player.player_choice
+    @chosen_letter = choice if choice.length == 1
+    choice.match?(/save/i) ? save_game : insert_chosen_letter
   end
 
   def find_all_indices_of_chosen_letter
@@ -105,6 +111,15 @@ class Hangman
     puts "Here is your current word: #{@guessed}"
     puts "Here are your wrong guesses: #{@wrong_guesses}"
     puts "Here are how many wrong guesses you have left: #{@num_of_wrong_guesses_left}"
+  end
+
+  def delete_save_file
+    return unless @saved_file == true
+
+    puts '\n'
+    puts 'That was the end of this hangman game! This file will now be deleted...'
+    File.delete(@file)
+    puts '...and it\'s gone :)'
   end
 
   def save_game

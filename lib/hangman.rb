@@ -34,6 +34,7 @@ class Hangman
     @wrong_guesses = ''
     @num_of_wrong_guesses_left = 7
     @saved_file = false
+    @file = ''
     check_if_save_file_exists
   end
 
@@ -42,14 +43,7 @@ class Hangman
       create_new_game
     else
       answer = @player.player_confirmation_input
-      if answer.match?(/y/i)
-        open_save_file
-      else
-        create_new_game
-      end
-      # need human player's response
-      # if yes: open save file that the user chooses if more than 1 file
-      # if no: run create_new_game
+      answer.match?(/y/i) ? open_save_file : create_new_game
     end
     play_round
   end
@@ -59,10 +53,11 @@ class Hangman
     if save_files.length > 1
       save_files.each_with_index { |f, i| puts "#{i}: #{f}" }
       num = @player.player_number_input(save_files.length - 1)
-      from_yaml(save_files[num])
+      @file = save_files[num]
     else
-      from_yaml(save_files[0])
+      @file = save_files[0]
     end
+    from_yaml
     print_player_information
   end
 
@@ -113,10 +108,12 @@ class Hangman
   end
 
   def save_game
+    @file = "saves/#{@guessed.length}_letters_#{('a'..'z').to_a.sample(8).join}.yaml" if @file.empty?
+    # puts @file # for testing
+    # puts "empty @file? #{@file.empty?}" # for testing
     @saved_file = true
-    filename = "saves/#{@guessed.length}_letters_#{@num_of_wrong_guesses_left}_guesses_left.yaml"
     save_file = to_yaml
-    File.open(filename, 'w') do |file|
+    File.open(@file, 'w') do |file|
       file.puts save_file
     end
   end
@@ -127,26 +124,19 @@ class Hangman
                 guessed: @guessed,
                 wrong_guesses: @wrong_guesses,
                 num_of_wrong_guesses_left: @num_of_wrong_guesses_left,
-                saved_file: @saved_file
+                saved_file: @saved_file,
+                file: @file
               })
   end
 
-  def from_yaml(path)
-    data = YAML.load_file("./saves/#{path}")
+  def from_yaml
+    data = YAML.load_file("./saves/#{@file}")
     # puts "data: #{data}" # for testing
     @secret_word = data[:secret_word]
     @guessed = data[:guessed]
     @wrong_guesses = data[:wrong_guesses]
     @num_of_wrong_guesses_left = data[:num_of_wrong_guesses_left]
     @saved_file = data[:saved_file]
+    @file = data[:file]
   end
-
-  # save/serialization?
-  # use the non-human readable type to save:
-  #   @secret_word
-  #   @guessed / correctly guessed letters
-  #   @wrong_guesses
-  #   @num_of_wrong_guesses_left
-  # don't use json or yaml because those are human readable and player can just open
-  # the file and see what the @secret_code is
 end

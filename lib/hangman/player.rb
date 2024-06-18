@@ -2,12 +2,17 @@
 
 # player class that only has methods that insert letters a-z
 class Player
+  def initialize
+    @guessed_letters = ''
+  end
+
   def player_choice
     puts 'Please choose 1 letter, upper or lowercase'
-    input = gets.chomp
-    if input.match?(/[a-z]/i) && input.length == 1
-      input.downcase
-    elsif input.match?(/save/i) && input.length > 1
+    input = gets.chomp.downcase
+    if input.match?(/[a-z]/) && input.length == 1 && !@guessed_letters.include?(input)
+      @guessed_letters += input
+      input
+    elsif input.match?(/save/)
       input
     else
       player_choice

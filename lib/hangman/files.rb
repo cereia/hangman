@@ -18,7 +18,7 @@ module Files
   def delete_save_file
     return unless @saved_file == true
 
-    puts '\n'
+    puts "\n"
     puts 'That was the end of this hangman game! This file will now be deleted...'
     File.delete(@file)
     puts '...and it\'s gone :)'

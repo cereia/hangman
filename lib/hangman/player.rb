@@ -8,7 +8,6 @@ class Player
     if input.match?(/[a-z]/i) && input.length == 1
       input.downcase
     elsif input.match?(/save/i) && input.length > 1
-      # puts 'save attempt' # for testing
       input
     else
       player_choice
@@ -29,8 +28,6 @@ class Player
     puts "Please choose a number from 0 to #{total_files}"
     num_range = Array(0..total_files)
     num = gets.chomp.to_i
-    # puts "range check: #{num_range}" # for testing
-    # puts "include? #{num_range.include?(num)}" # for testing
     if num_range.include?(num)
       num
     else

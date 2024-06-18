@@ -15,16 +15,15 @@
 #     they get the secret word
 #     they have 7 wrong guesses
 #   prevent player duplicating letters by checking against already used letters
-#   if saved game is loaded and it's finished, delete file/ask player if they want to delete
+#   if saved game is loaded and it's finished, delete file
 
 # human:
 #   guess letters a-z case insensitive
 
-require_relative 'player/player'
-require 'yaml'
-
 # hangman class holds all code relating to playing the game hangman
 class Hangman
+  include Files
+
   def initialize
     Dir.mkdir('saves') unless Dir.exist?('saves')
     @player = Player.new
@@ -46,19 +45,6 @@ class Hangman
       answer.match?(/y/i) ? open_save_file : create_new_game
     end
     play_round
-  end
-
-  def open_save_file
-    save_files = Dir.entries('saves').reject { |f| File.directory? f }
-    if save_files.length > 1
-      save_files.each_with_index { |f, i| puts "#{i}: #{f}" }
-      num = @player.player_number_input(save_files.length - 1)
-      @file = save_files[num]
-    else
-      @file = save_files[0]
-    end
-    from_yaml
-    print_player_information
   end
 
   def create_new_game
@@ -111,47 +97,5 @@ class Hangman
     puts "Here is your current word: #{@guessed}"
     puts "Here are your wrong guesses: #{@wrong_guesses}"
     puts "Here are how many wrong guesses you have left: #{@num_of_wrong_guesses_left}"
-  end
-
-  def delete_save_file
-    return unless @saved_file == true
-
-    puts '\n'
-    puts 'That was the end of this hangman game! This file will now be deleted...'
-    File.delete(@file)
-    puts '...and it\'s gone :)'
-  end
-
-  def save_game
-    @file = "saves/#{@guessed.length}_letters_#{('a'..'z').to_a.sample(8).join}.yaml" if @file.empty?
-    # puts @file # for testing
-    # puts "empty @file? #{@file.empty?}" # for testing
-    @saved_file = true
-    save_file = to_yaml
-    File.open(@file, 'w') do |file|
-      file.puts save_file
-    end
-  end
-
-  def to_yaml
-    YAML.dump({
-                secret_word: @secret_word,
-                guessed: @guessed,
-                wrong_guesses: @wrong_guesses,
-                num_of_wrong_guesses_left: @num_of_wrong_guesses_left,
-                saved_file: @saved_file,
-                file: @file
-              })
-  end
-
-  def from_yaml
-    data = YAML.load_file("./saves/#{@file}")
-    # puts "data: #{data}" # for testing
-    @secret_word = data[:secret_word]
-    @guessed = data[:guessed]
-    @wrong_guesses = data[:wrong_guesses]
-    @num_of_wrong_guesses_left = data[:num_of_wrong_guesses_left]
-    @saved_file = data[:saved_file]
-    @file = data[:file]
   end
 end

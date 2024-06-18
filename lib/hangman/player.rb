@@ -20,7 +20,7 @@ class Player
   end
 
   def player_confirmation_input
-    puts 'Do you want to open a saved file? Y/N'
+    puts 'Do you want to open a saved file? Y/N' unless Dir.empty?('saves')
     answer = gets.chomp
     if answer.match?(/y|n/i)
       answer

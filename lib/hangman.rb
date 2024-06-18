@@ -1,25 +1,5 @@
 # frozen_string_literal: true
 
-# game start: check if there are any saved games
-#  yes: ask player if they want to play a saved file
-#    yes: open saved file. if more than one, ask player which one => output list of files
-#    no: start new game
-#  no: start a new game
-
-# game:
-#   new word gets chosen as secret word
-#   show an obscured version of secret word with length to user
-#   have max wrong guesses = 7
-#   human player can save every round before they guess
-#   human player can guess until:
-#     they get the secret word
-#     they have 7 wrong guesses
-#   prevent player duplicating letters by checking against already used letters
-#   if saved game is loaded and it's finished, delete file
-
-# human:
-#   guess letters a-z case insensitive
-
 # hangman class holds all code relating to playing the game hangman
 class Hangman
   include Files
@@ -36,6 +16,8 @@ class Hangman
     @file = ''
     check_if_save_file_exists
   end
+
+  private
 
   def check_if_save_file_exists
     if Dir.empty?('saves')
@@ -58,12 +40,11 @@ class Hangman
   def play_round
     if !@num_of_wrong_guesses_left.zero? && @secret_word != @guessed
       check_player_choice
-    elsif @secret_word == @guessed
-      puts 'Congrats! You won!'
+    elsif @secret_word == @guessed || @num_of_wrong_guesses_left.zero?
+      puts 'Congrats! You won!' if @secret_word == @guessed
+      puts "You lost :(\nThe word was #{@secret_word} and you got #{@guessed}" if @num_of_wrong_guesses_left.zero?
       delete_save_file
-    else
-      puts "You lost :(\nThe correct word was #{@secret_word} and you got #{@guessed}"
-      delete_save_file
+      replay
     end
   end
 
@@ -97,5 +78,15 @@ class Hangman
     puts "Here is your current word: #{@guessed}"
     puts "Here are your wrong guesses: #{@wrong_guesses}"
     puts "Here are how many wrong guesses you have left: #{@num_of_wrong_guesses_left}"
+  end
+
+  def replay
+    puts 'Would you like to play again?'
+    answer = @player.player_confirmation_input
+    if answer.match?(/y/i)
+      Hangman.new
+    else
+      puts 'Thank you for playing!'
+    end
   end
 end
